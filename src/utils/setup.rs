@@ -4,6 +4,7 @@
 use anyhow::Result;
 use clap::Parser;
 use validator::{Validate, ValidationError};
+
 use super::{cli::Args, error::MyError};
 
 /// Set up crate context, cli, logging, and environment variables.
