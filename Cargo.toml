@@ -34,6 +34,7 @@ futures =  { version ="0.3", features = ["executor", "thread-pool"] }
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+actix = "0.13.0"
 
 # Your dependencies
 

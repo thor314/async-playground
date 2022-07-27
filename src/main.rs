@@ -17,6 +17,8 @@ use tokio::{spawn, task::spawn_blocking, time::sleep};
 use utils::MyError;
 use validator::{Validate, ValidationError};
 
+mod actix_actor_play;
+mod actor_play;
 #[cfg(test)] mod tests;
 mod utils;
 #[tokio::main]
