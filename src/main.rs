@@ -19,6 +19,7 @@ use validator::{Validate, ValidationError};
 
 mod actix_actor_play;
 mod actor_play;
+mod merge_streams;
 #[cfg(test)] mod tests;
 mod utils;
 #[tokio::main]

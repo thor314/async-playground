@@ -35,6 +35,8 @@ tokio-stream = { version = "0.1.9" }
 actix = "0.13.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+futures-lite = "1.12.0"
+merge-streams = "0.1.2"
 
 # Your dependencies
 
