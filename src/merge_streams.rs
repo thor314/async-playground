@@ -1,5 +1,6 @@
 use std::future::ready;
 
+use futures::stream::BoxStream;
 use futures_lite::{future::block_on, prelude::*};
 use merge_streams::MergeStreams;
 // use merge_streams::{IntoStream, MergeStreams};
@@ -22,6 +23,7 @@ fn main() {
     let mut s = merge_streams::MergeStreams::merge(vec![a, b, c]);
 
     // all these types are opaque, I'd like them to suck less so I can shove them in a struct
+    let stream: BoxStream<'static, i32> = Box::pin(s);
 
     // let a = futures_lite::stream::once(1);
     // let b = futures_lite::stream::once(2);
