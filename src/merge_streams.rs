@@ -16,6 +16,7 @@ fn main() {
     let b = futures::stream::once(ready(2));
     let c = futures::stream::once(ready(3));
     let joinall = futures::stream::select_all([a, b, c].into_iter());
+    let stream: BoxStream<'static, i32> = Box::pin(joinall);
 
     let a = futures_lite::stream::once(1);
     let b = futures_lite::stream::once(2);
