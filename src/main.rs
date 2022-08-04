@@ -4,13 +4,15 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(dead_code)]
-use std::time::Duration;
+use std::{alloc, future::ready, time::Duration};
 
 use anyhow::Result;
+use cap::Cap;
 use clap::Parser;
 use futures::{
   channel::mpsc,
   executor::{self, ThreadPool},
+  future::BoxFuture,
   StreamExt,
 };
 use tokio::{spawn, task::spawn_blocking, time::sleep};
@@ -22,13 +24,69 @@ mod actor_play;
 mod merge_streams;
 #[cfg(test)] mod tests;
 mod utils;
+
+// experiment: does this leak memory?
+#[derive(Default)]
+struct HoldsBox<'a> {
+  leak:    Option<BoxFuture<'static, u32>>,
+  no_leak: Option<BoxFuture<'a, u32>>,
+}
+
+#[global_allocator]
+static ALLOCATOR: Cap<alloc::System> = Cap::new(alloc::System, usize::max_value());
+
 #[tokio::main]
 async fn main() -> Result<()> {
-  use tokio::sync::mpsc;
-  use tokio_play::*;
+  // Set the limit to 30MiB.
+  ALLOCATOR.set_limit(30 * 1024 * 1024).unwrap();
 
-  let (tx, mut rx) = mpsc::channel(2);
-  let start = 5;
+  println!("entry: Currently allocated: {}B", ALLOCATOR.allocated());
+  let init = ALLOCATOR.allocated();
+  {
+    let leak: BoxFuture<'static, u32> = Box::pin(ready(1));
+    println!("made leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    let no_leak: BoxFuture<'_, u32> = Box::pin(ready(1));
+    println!("made no_leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    let mut hbox = HoldsBox::default();
+    println!("made empty holdsbox: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    hbox.leak = Some(leak);
+    println!("assigned leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    hbox.no_leak = Some(no_leak);
+    println!("assigned no leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+  }
+  println!("exit: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+  println!("entry: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+  {
+    // let leak: BoxFuture<'static, u32> = Box::pin(ready(1));
+    // println!("made leak: Currently allocated: {}B", ALLOCATOR.allocated());
+    let no_leak: BoxFuture<'_, u32> = Box::pin(ready(1));
+    println!("made no_leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    let mut hbox = HoldsBox::default();
+    println!("made empty holdsbox: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    // hbox.leak = Some(leak);
+    // println!("assigned leak: Currently allocated: {}B", ALLOCATOR.allocated());
+    hbox.no_leak = Some(no_leak);
+    println!("assigned no leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+  }
+  println!("exit: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+  println!("entry: Currently allocated: {}B", ALLOCATOR.allocated()-init);
+  {
+    let leak: BoxFuture<'static, u32> = Box::pin(ready(1));
+    println!("made leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    // let no_leak: BoxFuture<'_, u32> = Box::pin(ready(1));
+    // println!("made no_leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    let mut hbox = HoldsBox::default();
+    println!("made empty holdsbox: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    hbox.leak = Some(leak);
+    println!("assigned leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+    // hbox.no_leak = Some(no_leak);
+    // println!("assigned no leak: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+  }
+  println!("exit: Currently allocated: {}B", ALLOCATOR.allocated() - init);
+  // no memory leak! 'static doesn't mean "leak memory"
+
+  // let (tx, mut rx) = mpsc::channel(2);
+  // let start = 5;
 
   // use spawn blocking for synchronous apis!
   // let worker = spawn_blocking(move || {
@@ -40,39 +98,39 @@ async fn main() -> Result<()> {
   // });
 
   // spawn for non-blocking async:
-  let worker = spawn(async move {
-    for x in 0..10 {
-      println!("send {x}");
-      tx.send(start + x).await.unwrap();
-      // tx.send(start + x); // if we don't await here, acc will be 0 when we check it.
-    }
-  });
+  // let worker = spawn(async move {
+  //   for x in 0..10 {
+  //     println!("send {x}");
+  //     tx.send(start + x).await.unwrap();
+  //     // tx.send(start + x); // if we don't await here, acc will be 0 when we check it.
+  //   }
+  // });
 
-  let mut acc = 0;
-  while let Some(v) = rx.recv().await {
-    println!("got {}", v - 5);
-    acc += v;
-  }
-  assert_eq!(acc, 95); // if I switch blocking to non-blocking spawn, acc will be 0 when this line is reached!
-                       // worker.await.unwrap(); // this isn't actually necessary
+  // let mut acc = 0;
+  // while let Some(v) = rx.recv().await {
+  //   println!("got {}", v - 5);
+  //   acc += v;
+  // }
+  // assert_eq!(acc, 95); // if I switch blocking to non-blocking spawn, acc will be 0 when this
+  // line is reached! worker.await.unwrap(); // this isn't actually necessary
 
-  let context = utils::setup()?;
-  task_play().await;
+  // let context = utils::setup()?;
+  // task_play().await;
 
-  // but this will definitely run
-  tokio::spawn(async {
-    println!("I ran");
-    // sleep(Duration::from_millis(1000)); // I won't actually wait, since not awaited
-    sleep(Duration::from_millis(1000)).await; // I will wait
-    println!("I ran, yessiree");
-  })
-  .await
-  .unwrap();
-  // this might run, but isn't awaited, since tokio tasks are non-blocking.
-  tokio::spawn(async {
-    println!("I might run, mebe");
-    sleep(Duration::from_millis(1000)).await // note that tokio's sleep is async
-  });
+  // // but this will definitely run
+  // tokio::spawn(async {
+  //   println!("I ran");
+  //   // sleep(Duration::from_millis(1000)); // I won't actually wait, since not awaited
+  //   sleep(Duration::from_millis(1000)).await; // I will wait
+  //   println!("I ran, yessiree");
+  // })
+  // .await
+  // .unwrap();
+  // // this might run, but isn't awaited, since tokio tasks are non-blocking.
+  // tokio::spawn(async {
+  //   println!("I might run, mebe");
+  //   sleep(Duration::from_millis(1000)).await // note that tokio's sleep is async
+  // });
 
   Ok(())
 }

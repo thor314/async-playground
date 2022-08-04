@@ -21,7 +21,7 @@ fn main() {
     let a = futures_lite::stream::once(1);
     let b = futures_lite::stream::once(2);
     let c = futures_lite::stream::once(3);
-    let mut s = merge_streams::MergeStreams::merge(vec![a, b, c]);
+    let s = merge_streams::MergeStreams::merge(vec![a, b, c]);
 
     // all these types are opaque, I'd like them to suck less so I can shove them in a struct
     let stream: BoxStream<'static, i32> = Box::pin(s);
