@@ -4,6 +4,7 @@ use futures::stream::BoxStream;
 use futures_lite::{future::block_on, prelude::*};
 use kiam::when;
 use merge_streams::MergeStreams;
+use rand;
 // use merge_streams::{IntoStream, MergeStreams};
 
 fn main() {
