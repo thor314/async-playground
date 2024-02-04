@@ -13,7 +13,7 @@ pub(crate) fn setup() -> Result<(), MyError> {
   dotenv::dotenv().ok();
   let filter =
     EnvFilter::builder().with_default_directive(LevelFilter::INFO.into()).from_env_lossy();
-  tracing_subscriber::registry().with(filter).init();
+  tracing_subscriber::fmt().with_env_filter(filter).init();
 
   if std::env::var("DOTENV_OK").is_ok() {
     trace!("loaded dotenv");

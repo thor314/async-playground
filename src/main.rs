@@ -10,12 +10,18 @@ use error::MyError;
 mod error;
 #[cfg(test)] mod tests;
 mod utils;
+mod tokio_play;
+mod actor;
+mod stream;
 
 use tracing::info;
 
-fn main() -> Result<(), MyError> {
+#[tokio::main]
+async fn main() -> Result<(), MyError> {
   utils::setup()?;
   info!("hello thor");
+  // tokio_play::task_play().await;
+  stream::streams().await;
 
   Ok(())
 }
