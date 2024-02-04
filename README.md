@@ -1,7 +1,7 @@
 # async-playground
 <!-- [![Crates.io](https://img.shields.io/crates/v/async-playground.svg)](https://crates.io/crates/async-playground) -->
 <!-- [![Docs.rs](https://docs.rs/async-playground/badge.svg)](https://docs.rs/async-playground) -->
-[![CI](https://github.com//async-playground/workflows/CI/badge.svg)](https://github.com//async-playground/actions)
+![](https://github.com/thor314/async-playground/actions/workflows/ci.yml/badge.svg)
 
 ## Installation
 
