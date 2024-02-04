@@ -8,10 +8,12 @@
 use error::MyError;
 
 mod actor;
+mod channels;
 mod error;
+mod mutex;
 mod stream;
+mod tasks;
 #[cfg(test)] mod tests;
-mod tokio_play;
 mod utils;
 
 use tracing::info;
