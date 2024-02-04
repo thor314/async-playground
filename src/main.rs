@@ -9,6 +9,7 @@ use error::MyError;
 
 mod actor;
 mod channels;
+mod pin_project;
 mod error;
 mod mutex;
 mod stream;
