@@ -7,12 +7,12 @@
 
 use error::MyError;
 
-mod error;
-#[cfg(test)] mod tests;
-mod utils;
-mod tokio_play;
 mod actor;
+mod error;
 mod stream;
+#[cfg(test)] mod tests;
+mod tokio_play;
+mod utils;
 
 use tracing::info;
 
