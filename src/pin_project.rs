@@ -1,7 +1,6 @@
 use std::pin::Pin;
 
-use async_std::{channel, prelude::*};
-use futures_lite::prelude::*;
+use futures::prelude::*;
 use pin_project::pin_project;
 
 #[pin_project]
